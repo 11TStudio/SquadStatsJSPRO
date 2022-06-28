@@ -1,14 +1,26 @@
 <!DOCTYPE html>
 <html>
-	<%- include('includes/head') %>
-	<link rel="stylesheet" href="//cdn.datatables.net/1.11.0/css/jquery.dataTables.min.css"></link>
+<%- include('includes/head') %>
+	<link rel="stylesheet" href="//cdn.datatables.net/1.11.0/css/jquery.dataTables.min.css">
+	</link>
 	<script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.5.1.js"></script>
-    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"
-            defer></script>
+	<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"
+		defer></script>
+	<link rel="stylesheet"
+		href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 	<style>
+		.material-symbols-outlined {
+			font-variation-settings:
+				'FILL' 0,
+				'wght' 400,
+				'GRAD' 0,
+				'opsz' 48
+		}
+
 		.card-body {
 			padding: 0.4rem !important;
 		}
+
 		.tippy-box {
 			position: relative;
 			background-color: #33333345 !important;
@@ -17,26 +29,118 @@
 			font-size: 14px;
 			line-height: 1.4;
 			outline: 0;
-			transition-property: transform,visibility,opacity;
+			transition-property: transform, visibility, opacity;
 		}
-		table, .table {
+
+		table,
+		.table {
 			width: 100% !important;
 		}
+
 		thead input {
 			width: 100%;
 		}
 	</style>
+
 	<body>
 		<%- include('./partials/sidebar') %>
-		<div class="main-content">
-		<!-- Top navbar -->
-		<%- include('./partials/navbar') %>
-		<!-- Header -->
-		<%- include('./partials/header') %>
-			<!-- Content Wrapper. Contains page content -->
-			
-			<%- include('./partials/footer') %>
-		</div>
-		
+			<div class="main-content">
+				<!-- Top navbar -->
+				<%- include('./partials/navbar') %>
+					<!-- Header -->
+					<%- include('./partials/header') %>
+						<!-- Content Wrapper. Contains page content -->
+
+						<div class="card m-5">
+							<div class="card-header">
+								<h3 class="card-title mx-auto text-center">
+									<img src="<%- userSteam.avatarfull %>" class="rounded-circle" alt="logo" width="50"
+										height="50">
+									<%- userSteam.personaname%>'s Profile
+								</h3>
+								<h5 class="text-center">
+									<%- user.bio ? user.bio : translate("squad/profile:NO_BIO", { prefix:
+										c.config.prefix, }) %>
+								</h5>
+								<button class="btn btn-success mx-auto d-block" onclick='updateStats()'><b>UPDATE
+										STATS</b></button>
+							</div>
+							<div class="card-body mx-auto d-flex flex-wrap" id='stat-div'>
+							</div>
+						</div>
+
+						<%- include('./partials/footer') %>
+			</div>
+
 	</body>
+
+	<script>
+		const user = <%- JSON.stringify(user) %>;
+		async function loadProfile() {
+			const div = document.getElementById('stat-div');
+			div.innerHTML = "";
+			let i = 0;
+			for (const data in user.squad) {
+				if (i > 5) break;
+				div.innerHTML += `
+				<div class="card p-5 m-2">
+					<div class="card-header text-center">
+						<h1>
+							${user.squad[data] ? user.squad[data] : 0}
+						</h1>
+					</div>
+					<div class="card-body">
+						<h2 class="card-title text-center">
+							${Object.keys(user.squad)[i] === "kd" ?
+						"K/D" :
+						Object.keys(user.squad)[i] === "Kills_ALL" ?
+							"Kills" :
+							Object.keys(user.squad)[i] === "woundsVEH" ?
+								"Vehicle Wounds" :
+								Object.keys(user.squad)[i] === "woundsINF" ?
+									"Infantry Wounds" :
+									Object.keys(user.squad)[i] === "deaths" ?
+										"Deaths" :
+										Object.keys(user.squad)[i] === "revives" ?
+											"Revives" :
+											Object.keys(user.squad)[i] === "tk" ?
+												"Team Kills" : ""}
+						</h2 >
+					</div>
+				</div>
+				`;
+				i++;
+			}
+		}
+		async function updateStats() {
+			await axios.post(`${window.location.origin}/squad-api/user/updateStats`).then(async (response) => {
+				const res = await response.data;
+				if (res.status === "ok") {
+					await new Noty({
+						theme: "nest",
+						type: 'success',
+						layout: 'topRight',
+						text: res.message,
+						closeWith: ['click', 'timeout'],
+						timeout: 2500
+					}).show();
+					loadProfile();
+				}
+				else {
+					new Noty({
+						theme: 'nest',
+						timeout: 3000,
+						layout: 'bottom',
+						killer: true,
+						type: 'error',
+						visibilityControl: 'true',
+						text: res.message
+					}).show();
+				}
+			});
+		}
+		loadProfile()
+
+	</script>
+
 </html>

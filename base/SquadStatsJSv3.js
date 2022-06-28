@@ -54,6 +54,7 @@ class SquadStatsJSv3 extends Client {
 		this.dashboard = require("../dashboard/app"); // Dashboard app
 		this.states = {}; // Used for the dashboard
 		this.knownGuilds = [];
+		this.players = [];
 		this.pool = null;
 
 		this.databaseCache = {};
@@ -1131,6 +1132,7 @@ class SquadStatsJSv3 extends Client {
 		}
 		await user.markModified("squad");
 		await user.save();
+		return true;
 	}
 
 	// Get all player squad stats from mongoose

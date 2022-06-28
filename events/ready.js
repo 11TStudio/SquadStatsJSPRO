@@ -11,7 +11,6 @@ module.exports = class {
 		const client = this.client;
 		const socket = client.socket;
 		const nameChecker = await client.getNameCheckerConfig();
-
 		if (socket) {
 			socket.on("connect_error", (err) => {
 				return client.logger.log(err, "ERROR");
@@ -23,6 +22,10 @@ module.exports = class {
 
 			// When player is connected.
 			socket.on("PLAYER_CONNECTED", async (playerData) => {
+				await client.emit(
+					"sessionStart",
+					playerData
+					)
 				// here all events that relate with player connection
 				const banData = await client.getPlayerBan(playerData?.player?.steamID),
 					owner = await client.findUserByID(client.config.owner.id);
@@ -58,7 +61,42 @@ module.exports = class {
 						nameChecker
 					);
 				}
+				// ingame sessions 
+
+
 			});
+
+			socket.on("PLAYER_DISCONNECTED", async (playerData) => {
+				// session ends
+				await client.emit(
+					"sessionEnd",
+					playerData
+					);
+			});
+
+			socket.on("PLAYER_DIED", async (playerData) => {
+				const inList_isAttacker = client.players.find((p) => p.player.steamID === playerData?.attacker?.steamID);
+				if (inList_isAttacker) {
+					inList_isAttacker.session.kills++;
+				}
+				const inList_isVictim = client.players.find((p) => p.player.steamID === playerData?.victim?.steamID);
+				if (inList_isVictim) {
+					inList_isVictim.session.deaths++;
+				}
+			})
+
+			socket.on("PLAYER_REVIVED", async (playerData) => {
+				const inList_isReviver = client.players.find((p) => p.player.steamID === playerData?.reviver?.steamID);
+				if (inList_isReviver) {
+					inList_isReviver.session.revives++;
+				}
+			})
+
+
+
+			
+				
+
 
 			// When players writes something
 			// socket.on("CHAT_MESSAGE", async (messageData) => {

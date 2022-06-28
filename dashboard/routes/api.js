@@ -3020,4 +3020,18 @@ router.post(
 	}		
 );
 
+router.post(
+	"/user/updateStats",
+	CheckAuth,
+	async function (req, res) {
+		const user = await req.client.findUserByID(req.session.user.id);
+		console.log(user);
+		if(!user) return res.json({status: "nok", message: "You are doing something wrong."});
+		const updater = await req.client.updateStats(user.id);	
+		console.log(updater);
+		if(!updater) return res.json({status: "nok", message: "We couldn't update your stats, please try again!"});
+		return res.json({status: "ok", message: "Your stats are updated!"});	
+	}		
+);
+
 module.exports = router;
